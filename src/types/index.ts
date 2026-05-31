@@ -33,3 +33,36 @@ export interface AcademicAnalytics {
     progress: number; // 0 to 1
   }[];
 }
+
+export interface Profile {
+  id: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Group {
+  id: string;
+  name: string;
+  description: string | null;
+  created_by: string;
+  created_at: string;
+  member_count?: number; // Virtual field from count query
+}
+
+export interface GroupMember {
+  group_id: string;
+  user_id: string;
+  joined_at: string;
+  profile?: Profile; // Joined relation
+}
+
+export interface GroupMessage {
+  id: string;
+  group_id: string;
+  user_id: string;
+  content: string;
+  created_at: string;
+  profile?: Profile; // Joined sender profile
+}
