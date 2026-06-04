@@ -1,24 +1,25 @@
-import React, { useState, useMemo } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Modal,
-  StyleSheet,
-  Text,
-  View,
-  Pressable,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-} from 'react-native';
+import { Button } from '@/src/components/common/Button';
+import { EmptyState } from '@/src/components/common/EmptyState';
+import { Input } from '@/src/components/common/Input';
+import { Skeleton } from '@/src/components/common/Skeleton';
 import { useAssignments } from '@/src/hooks/useAssignments';
 import { useSubjects } from '@/src/hooks/useSubjects';
-import { colors, spacing, typography, borderRadius } from '@/src/theme/colors';
-import { Input } from '@/src/components/common/Input';
-import { Button } from '@/src/components/common/Button';
+import { borderRadius, colors, spacing, typography } from '@/src/theme/colors';
 import { Feather } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
+import React, { useMemo, useState } from 'react';
+import {
+    Alert,
+    FlatList,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View
+} from 'react-native';
 
 type PriorityType = 'low' | 'medium' | 'high';
 
@@ -178,8 +179,20 @@ export default function AssignmentsScreen() {
 
   if ((assignmentsLoading || subjectsLoading) && assignments.length === 0) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
+      <View style={styles.container}>
+        <StatusBar style="light" />
+        <View style={styles.filterSection}>
+          <Skeleton height={40} borderRadius={20} />
+          <View style={{height: spacing.sm}}/>
+          <Skeleton height={32} borderRadius={16} />
+        </View>
+        <ScrollView contentContainerStyle={{ padding: spacing.lg }}>
+          {[1, 2, 3, 4].map((i) => (
+            <View key={i} style={{ marginBottom: spacing.md }}>
+              <Skeleton height={140} borderRadius={borderRadius.lg} />
+            </View>
+          ))}
+        </ScrollView>
       </View>
     );
   }
@@ -301,30 +314,17 @@ export default function AssignmentsScreen() {
 
       {/* Task Checklist View */}
       {filteredAssignments.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <View style={styles.emptyIconCircle}>
-            <Feather
-              name={selectedStatus === 'completed' ? 'check-circle' : 'file-text'}
-              size={40}
-              color={colors.dark.textPlaceholder}
-            />
-          </View>
-          <Text style={styles.emptyTitle}>
-            {selectedStatus === 'completed' ? 'No Tasks Finished' : 'No Tasks Pending'}
-          </Text>
-          <Text style={styles.emptySubtitle}>
-            {selectedStatus === 'completed'
+        <EmptyState
+          iconName={selectedStatus === 'completed' ? 'check-circle' : 'file-text'}
+          title={selectedStatus === 'completed' ? 'No Tasks Finished' : 'No Tasks Pending'}
+          description={
+            selectedStatus === 'completed'
               ? 'Completed tasks will be recorded here for study progress analytics.'
-              : 'Add coursework assignments to start checking them off your productive schedule.'}
-          </Text>
-          {selectedStatus === 'pending' && (
-            <Button
-              title="Add Assignment"
-              onPress={() => setModalVisible(true)}
-              style={styles.emptyButton}
-            />
-          )}
-        </View>
+              : 'Add coursework assignments to start checking them off your productive schedule.'
+          }
+          actionTitle={selectedStatus === 'pending' ? 'Add Assignment' : undefined}
+          onAction={selectedStatus === 'pending' ? () => setModalVisible(true) : undefined}
+        />
       ) : (
         <FlatList
           data={filteredAssignments}

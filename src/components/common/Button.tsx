@@ -1,14 +1,15 @@
+import { useColorScheme } from '@/components/useColorScheme';
+import { borderRadius, colors, spacing, typography } from '@/src/theme/colors';
 import React from 'react';
 import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  ViewStyle,
-  TextStyle,
-  StyleProp,
+    ActivityIndicator,
+    Pressable,
+    StyleProp,
+    StyleSheet,
+    Text,
+    TextStyle,
+    ViewStyle
 } from 'react-native';
-import { colors, borderRadius, spacing, typography } from '@/src/theme/colors';
 
 type ButtonVariant = 'primary' | 'secondary' | 'outline' | 'link';
 
@@ -20,7 +21,6 @@ interface ButtonProps {
   disabled?: boolean;
   style?: StyleProp<ViewStyle>;
   textStyle?: StyleProp<TextStyle>;
-  themeMode?: 'light' | 'dark';
 }
 
 export const Button: React.FC<ButtonProps> = ({
@@ -31,8 +31,9 @@ export const Button: React.FC<ButtonProps> = ({
   disabled = false,
   style,
   textStyle,
-  themeMode = 'dark', // default to slate dark theme
 }) => {
+  const themeMode = useColorScheme() ?? 'dark';
+
   const getButtonStyles = (pressed: boolean): StyleProp<ViewStyle>[] => {
     const baseStyle: ViewStyle = {
       ...styles.base,
@@ -111,11 +112,12 @@ export const Button: React.FC<ButtonProps> = ({
       onPress={onPress}
       disabled={disabled || loading}
       style={({ pressed }) => getButtonStyles(pressed)}
+      android_ripple={{ color: themeMode === 'dark' ? 'rgba(255,255,255,0.1)' : 'rgba(0,0,0,0.1)' }}
     >
       {loading ? (
         <ActivityIndicator
           size="small"
-          color={variant === 'outline' ? colors.primary : '#FFFFFF'}
+          color={variant === 'outline' ? (themeMode === 'dark' ? colors.dark.text : colors.light.text) : '#FFFFFF'}
         />
       ) : (
         <Text style={getTextStyle()}>{title}</Text>

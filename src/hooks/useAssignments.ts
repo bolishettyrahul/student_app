@@ -1,12 +1,17 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useAuth } from '@/src/context/AuthContext';
 import { supabase } from '@/src/services/supabase';
 import { Assignment } from '@/src/types';
-import { useAuth } from '@/src/context/AuthContext';
+import { PostgrestError } from '@supabase/supabase-js';
+import { useCallback, useEffect, useState } from 'react';
+
+const sortAssignments = (assignments: Assignment[]) => 
+  [...assignments].sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
 
 export const useAssignments = () => {
   const { user } = useAuth();
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const fetchAssignments = useCallback(async () => {
@@ -16,7 +21,7 @@ export const useAssignments = () => {
     try {
       const { data, error: fetchError } = await supabase
         .from('assignments')
-        .select('*, subject:subjects(*)')
+        .select('id, title, description, due_date, status, priority, created_at, user_id, subject_id, subject:subjects(id, name, color, code)')
         .eq('user_id', user.id)
         .order('due_date', { ascending: true });
 
@@ -25,9 +30,10 @@ export const useAssignments = () => {
       }
 
       setAssignments(data || []);
-    } catch (err: any) {
-      console.error('Error fetching assignments:', err);
-      setError(err.message || 'Failed to fetch assignments');
+    } catch (err: unknown) {
+      const pgErr = err as PostgrestError;
+      console.error('Error fetching assignments:', pgErr);
+      setError(pgErr.message || 'Failed to fetch assignments');
     } finally {
       setLoading(false);
     }
@@ -41,8 +47,13 @@ export const useAssignments = () => {
     subject_id: string | null
   ) => {
     if (!user) return { success: false, error: 'User is not authenticated' };
+    if (isSubmitting) return { success: false, error: 'Request in progress' };
+    
+    setIsSubmitting(true);
     setError(null);
     try {
+      // Ensure due_date is ISO 8601
+      const normalizedDate = new Date(due_date).toISOString();
       const { data, error: insertError } = await supabase
         .from('assignments')
         .insert([
@@ -51,36 +62,46 @@ export const useAssignments = () => {
             subject_id: subject_id || null,
             title,
             description,
-            due_date,
+            due_date: normalizedDate,
             priority,
             status: 'pending',
           },
         ])
-        .select('*, subject:subjects(*)')
+        .select('id, title, description, due_date, status, priority, created_at, user_id, subject_id, subject:subjects(id, name, color, code)')
         .single();
 
       if (insertError) {
         throw insertError;
       }
 
-      setAssignments((prev) => [...prev, data].sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime()));
+      setAssignments((prev) => sortAssignments([...prev, data]));
       return { success: true, data };
-    } catch (err: any) {
-      console.error('Error adding assignment:', err);
-      return { success: false, error: err.message || 'Failed to add assignment' };
+    } catch (err: unknown) {
+      const pgErr = err as PostgrestError;
+      console.error('Error adding assignment:', pgErr);
+      return { success: false, error: pgErr.message || 'Failed to add assignment' };
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const updateAssignment = async (id: string, updates: Partial<Assignment>) => {
     if (!user) return { success: false, error: 'User is not authenticated' };
+    if (isSubmitting) return { success: false, error: 'Request in progress' };
+
+    setIsSubmitting(true);
     setError(null);
     try {
+      if (updates.due_date) {
+        updates.due_date = new Date(updates.due_date).toISOString();
+      }
+
       const { data, error: updateError } = await supabase
         .from('assignments')
         .update(updates)
         .eq('id', id)
         .eq('user_id', user.id)
-        .select('*, subject:subjects(*)')
+        .select('id, title, description, due_date, status, priority, created_at, user_id, subject_id, subject:subjects(id, name, color, code)')
         .single();
 
       if (updateError) {
@@ -88,14 +109,15 @@ export const useAssignments = () => {
       }
 
       setAssignments((prev) =>
-        prev
-          .map((item) => (item.id === id ? data : item))
-          .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime())
+        sortAssignments(prev.map((item) => (item.id === id ? data : item)))
       );
       return { success: true, data };
-    } catch (err: any) {
-      console.error('Error updating assignment:', err);
-      return { success: false, error: err.message || 'Failed to update assignment' };
+    } catch (err: unknown) {
+      const pgErr = err as PostgrestError;
+      console.error('Error updating assignment:', pgErr);
+      return { success: false, error: pgErr.message || 'Failed to update assignment' };
+    } finally {
+      setIsSubmitting(false);
     }
   };
 

@@ -1,17 +1,18 @@
+import { useColorScheme } from '@/components/useColorScheme';
+import { borderRadius, colors, spacing, typography } from '@/src/theme/colors';
+import { Feather } from '@expo/vector-icons';
 import React, { useState } from 'react';
 import {
-  StyleSheet,
-  Text,
-  TextInput,
-  TextInputProps,
-  View,
-  ViewStyle,
-  TextStyle,
-  StyleProp,
-  Pressable,
+    Pressable,
+    StyleProp,
+    StyleSheet,
+    Text,
+    TextInput,
+    TextInputProps,
+    TextStyle,
+    View,
+    ViewStyle,
 } from 'react-native';
-import { colors, borderRadius, spacing, typography } from '@/src/theme/colors';
-import { Feather } from '@expo/vector-icons';
 
 interface InputProps extends TextInputProps {
   label?: string;
@@ -22,7 +23,6 @@ interface InputProps extends TextInputProps {
   onRightIconPress?: () => void;
   containerStyle?: StyleProp<ViewStyle>;
   inputStyle?: StyleProp<TextStyle>;
-  themeMode?: 'light' | 'dark';
 }
 
 export const Input: React.FC<InputProps> = ({
@@ -34,9 +34,9 @@ export const Input: React.FC<InputProps> = ({
   onRightIconPress,
   containerStyle,
   inputStyle,
-  themeMode = 'dark',
   ...props
 }) => {
+  const themeMode = useColorScheme() ?? 'dark';
   const [isFocused, setIsFocused] = useState(false);
 
   const activeColors = colors[themeMode];

@@ -4,41 +4,42 @@
  */
 
 export const colors = {
-  // Brand Accents
-  primary: '#6366F1', // Indigo (core brand)
-  primaryLight: '#818CF8',
-  primaryDark: '#4F46E5',
+  // Brand Accents derived from Google Stitch Design
+  primary: '#b4e8ff',
+  primaryDark: '#0c6780', // inverse-primary
 
-  secondary: '#14B8A6', // Teal (productivity & positive actions)
-  secondaryLight: '#2DD4BF',
-  secondaryDark: '#0D9488',
+  secondary: '#c9bfff',
+  secondaryDark: '#4720ca',
+
+  tertiary: '#76f4eb',
+  tertiaryDark: '#005b56',
 
   // System States
-  success: '#10B981', // Emerald
-  warning: '#F59E0B', // Amber
-  error: '#EF4444', // Rose
-  info: '#3B82F6', // Blue
+  success: '#56d7ce', 
+  warning: '#F59E0B', 
+  error: '#ffdad6', // on-error-container
+  errorBg: '#93000a',
 
-  // Dark Mode Palette (Default Core Theme)
+  // Dark Mode Palette (Primary focus as per UI)
   dark: {
-    background: '#0F172A', // Slate 900
-    card: '#1E293B', // Slate 800
-    border: '#334155', // Slate 700
-    text: '#F8FAFC', // Slate 50
-    textMuted: '#94A3B8', // Slate 400
-    textPlaceholder: '#64748B', // Slate 500
-    accentBg: '#1E1B4B', // Translucent Indigo Dark
+    background: '#0b1229',
+    card: '#222941', // surface-container-high
+    border: '#3f484c', // outline-variant
+    text: '#dce1ff', // on-background
+    textMuted: '#bfc8cd', // on-surface-variant
+    textPlaceholder: '#899297', // outline
+    accentBg: '#060d24', // surface-container-lowest
   },
 
-  // Light Mode Palette
+  // Light Mode Palette (Generated contrast equivalents)
   light: {
-    background: '#F8FAFC', // Slate 50
-    card: '#FFFFFF',
-    border: '#E2E8F0', // Slate 200
-    text: '#0F172A', // Slate 900
-    textMuted: '#64748B', // Slate 500
-    textPlaceholder: '#94A3B8', // Slate 400
-    accentBg: '#EEF2FF', // Translucent Indigo Light
+    background: '#f8f9ff',
+    card: '#ffffff',
+    border: '#c2c7ce',
+    text: '#191c20',
+    textMuted: '#43474e',
+    textPlaceholder: '#73777f',
+    accentBg: '#e0e2ec',
   },
 };
 

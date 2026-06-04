@@ -1,23 +1,24 @@
-import React, { useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  FlatList,
-  Modal,
-  StyleSheet,
-  Text,
-  View,
-  Pressable,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-} from 'react-native';
-import { useSubjects } from '@/src/hooks/useSubjects';
-import { colors, spacing, typography, borderRadius } from '@/src/theme/colors';
-import { Input } from '@/src/components/common/Input';
 import { Button } from '@/src/components/common/Button';
+import { EmptyState } from '@/src/components/common/EmptyState';
+import { Input } from '@/src/components/common/Input';
+import { Skeleton } from '@/src/components/common/Skeleton';
+import { useSubjects } from '@/src/hooks/useSubjects';
+import { borderRadius, colors, spacing, typography } from '@/src/theme/colors';
 import { Feather } from '@expo/vector-icons';
 import { StatusBar } from 'expo-status-bar';
+import React, { useState } from 'react';
+import {
+    Alert,
+    FlatList,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View
+} from 'react-native';
 
 const COLOR_PALETTE = [
   '#6366F1', // Indigo (Primary)
@@ -82,8 +83,15 @@ export default function SubjectsScreen() {
 
   if (loading && subjects.length === 0) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={colors.primary} />
+      <View style={styles.container}>
+        <StatusBar style="light" />
+        <ScrollView contentContainerStyle={{ padding: spacing.lg }}>
+          {[1, 2, 3, 4].map((i) => (
+            <View key={i} style={{ marginBottom: spacing.md }}>
+              <Skeleton height={80} borderRadius={borderRadius.lg} />
+            </View>
+          ))}
+        </ScrollView>
       </View>
     );
   }
@@ -103,20 +111,13 @@ export default function SubjectsScreen() {
       )}
 
       {subjects.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <View style={styles.emptyIconCircle}>
-            <Feather name="book" size={40} color={colors.dark.textPlaceholder} />
-          </View>
-          <Text style={styles.emptyTitle}>No Subjects Added</Text>
-          <Text style={styles.emptySubtitle}>
-            Add academic subjects to start organizing your tasks and assignments color-code styled.
-          </Text>
-          <Button
-            title="Add First Subject"
-            onPress={() => setModalVisible(true)}
-            style={styles.emptyButton}
-          />
-        </View>
+        <EmptyState
+          iconName="book"
+          title="No Subjects Added"
+          description="Add academic subjects to start organizing your tasks and assignments color-code styled."
+          actionTitle="Add First Subject"
+          onAction={() => setModalVisible(true)}
+        />
       ) : (
         <FlatList
           data={subjects}

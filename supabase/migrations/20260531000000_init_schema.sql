@@ -65,6 +65,7 @@ create table public.group_messages (
 create index idx_subjects_user_id on public.subjects(user_id);
 create index idx_assignments_user_id on public.assignments(user_id);
 create index idx_assignments_subject_id on public.assignments(subject_id);
+create index idx_assignments_user_deadline on public.assignments(user_id, due_date);
 create index idx_group_members_user_id on public.group_members(user_id);
 create index idx_group_messages_group_id on public.group_messages(group_id);
 
@@ -85,6 +86,24 @@ $$ language plpgsql security definer;
 create or replace trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
+
+-- Trigger for Profile Synchronization on Update
+create or replace function public.handle_update_user()
+returns trigger as $$
+begin
+  update public.profiles
+  set 
+    full_name = coalesce(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', full_name),
+    avatar_url = coalesce(new.raw_user_meta_data->>'avatar_url', avatar_url),
+    updated_at = timezone('utc'::text, now())
+  where id = new.id;
+  return new;
+end;
+$$ language plpgsql security definer;
+
+create or replace trigger on_auth_user_updated
+  after update on auth.users
+  for each row execute procedure public.handle_update_user();
 
 -- 4. Enable Row Level Security (RLS) on all tables
 alter table public.profiles enable row level security;

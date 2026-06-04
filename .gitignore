@@ -40,3 +40,13 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Agent-specific directories and files
+.agents/
+skills-lock.json
+extracted_colors.json
+
+# Local HTML/PNG screenshots and preview helper scripts
+/*.html
+/*.png
+/*.ps1

@@ -1,27 +1,32 @@
-import React, { useState } from 'react';
-import {
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import { Link } from 'expo-router';
-import { StatusBar } from 'expo-status-bar';
-import { supabase } from '@/src/services/supabase';
-import { colors, spacing, typography, borderRadius } from '@/src/theme/colors';
+import { useColorScheme } from '@/components/useColorScheme';
 import { Button } from '@/src/components/common/Button';
 import { Input } from '@/src/components/common/Input';
+import { supabase } from '@/src/services/supabase';
+import { borderRadius, colors, spacing, typography } from '@/src/theme/colors';
 import { Feather } from '@expo/vector-icons';
+import { Link } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import React, { useMemo, useState } from 'react';
+import {
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    View
+} from 'react-native';
 
 export default function LoginScreen() {
+  const themeMode = useColorScheme() ?? 'dark';
+  const activeColors = colors[themeMode];
+  const styles = useMemo(() => createStyles(activeColors, themeMode), [activeColors, themeMode]);
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const validate = (): boolean => {
     const newErrors: { email?: string; password?: string } = {};
@@ -43,6 +48,7 @@ export default function LoginScreen() {
   };
 
   const handleLogin = async () => {
+    setAuthError(null);
     if (!validate()) return;
 
     setLoading(true);
@@ -53,11 +59,11 @@ export default function LoginScreen() {
       });
 
       if (error) {
-        Alert.alert('Sign In Failed', error.message);
+        setAuthError(error.message);
       }
     } catch (err) {
       console.error('Login unexpected error:', err);
-      Alert.alert('Error', 'An unexpected error occurred. Please try again.');
+      setAuthError('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -89,6 +95,13 @@ export default function LoginScreen() {
         <View style={styles.formCard}>
           <Text style={styles.formTitle}>Welcome Back</Text>
           <Text style={styles.formSubtitle}>Sign in to continue your journey</Text>
+
+          {authError && (
+            <View style={styles.errorBox}>
+              <Feather name="alert-circle" size={18} color={colors.error} />
+              <Text style={styles.errorBoxText}>{authError}</Text>
+            </View>
+          )}
 
           <Input
             label="Email"
@@ -123,6 +136,7 @@ export default function LoginScreen() {
             title="Sign In"
             onPress={handleLogin}
             loading={loading}
+            disabled={loading}
             style={styles.signInButton}
           />
 
@@ -132,11 +146,6 @@ export default function LoginScreen() {
             <View style={styles.dividerLine} />
           </View>
 
-          <Button
-            title="Create an Account"
-            onPress={() => {}}
-            variant="outline"
-          />
           <Link href="/register" style={styles.createAccountLink}>
             <Text style={styles.createAccountLinkText}>
               Don&apos;t have an account?{' '}
@@ -149,10 +158,10 @@ export default function LoginScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (themeColors: typeof colors.dark, themeMode: 'light' | 'dark') => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.dark.background,
+    backgroundColor: themeColors.background,
   },
   scrollContent: {
     flexGrow: 1,
@@ -171,7 +180,7 @@ const styles = StyleSheet.create({
     width: 72,
     height: 72,
     borderRadius: borderRadius.full,
-    backgroundColor: colors.dark.accentBg,
+    backgroundColor: themeColors.accentBg,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
@@ -180,31 +189,52 @@ const styles = StyleSheet.create({
   appName: {
     fontSize: typography.fontSizes.xxxl,
     fontWeight: '700',
-    color: colors.dark.text,
+    color: themeColors.text,
     letterSpacing: -0.5,
   },
   tagline: {
     fontSize: typography.fontSizes.md,
-    color: colors.dark.textMuted,
+    color: themeColors.textMuted,
     marginTop: spacing.xs,
   },
   formCard: {
-    backgroundColor: colors.dark.card,
+    backgroundColor: themeColors.card,
     borderRadius: borderRadius.xl,
     padding: spacing.lg,
     borderWidth: 1,
-    borderColor: colors.dark.border,
+    borderColor: themeColors.border,
+    shadowColor: themeMode === 'light' ? '#000' : 'transparent',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 12,
+    elevation: 2,
   },
   formTitle: {
     fontSize: typography.fontSizes.xxl,
     fontWeight: '700',
-    color: colors.dark.text,
+    color: themeColors.text,
     marginBottom: spacing.xs,
   },
   formSubtitle: {
     fontSize: typography.fontSizes.sm,
-    color: colors.dark.textMuted,
+    color: themeColors.textMuted,
     marginBottom: spacing.lg,
+  },
+  errorBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.error + '15',
+    padding: spacing.md,
+    borderRadius: borderRadius.sm,
+    marginBottom: spacing.md,
+    borderWidth: 1,
+    borderColor: colors.error + '30',
+  },
+  errorBoxText: {
+    color: colors.error,
+    fontSize: typography.fontSizes.sm,
+    marginLeft: spacing.sm,
+    flex: 1,
   },
   forgotLink: {
     alignSelf: 'flex-end',
@@ -227,23 +257,25 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: colors.dark.border,
+    backgroundColor: themeColors.border,
   },
   dividerText: {
-    color: colors.dark.textMuted,
+    color: themeColors.textMuted,
     fontSize: typography.fontSizes.sm,
     marginHorizontal: spacing.md,
   },
   createAccountLink: {
     alignSelf: 'center',
     marginTop: spacing.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
   },
   createAccountLinkText: {
-    color: colors.dark.textMuted,
-    fontSize: typography.fontSizes.sm,
+    color: themeColors.textMuted,
+    fontSize: typography.fontSizes.md,
   },
   createAccountHighlight: {
-    color: colors.primaryLight,
+    color: colors.primary,
     fontWeight: '600',
   },
 });
